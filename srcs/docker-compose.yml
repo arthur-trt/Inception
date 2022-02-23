@@ -1,0 +1,60 @@
+version: "2"
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    env_file:
+      - ./.env
+    ports:
+      - 127.0.0.1:3306:3306
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - hidden
+    restart: on-failure
+
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    depends_on:
+      - wordpress
+    volumes:
+      - wp_data:/var/www/html
+    ports:
+      - 443:443
+    networks:
+      - hidden
+    restart: on-failure
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    ports:
+      - 127.0.0.1:9000:9000
+    env_file:
+      - ./.env
+    volumes:
+      - wp_data:/var/www/html
+    depends_on:
+      - mariadb
+    networks:
+      - hidden
+    restart: on-failure
+
+networks:
+  hidden:
+
+volumes:
+  db_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/atrouill/data/db_data
+      o: bind
+  wp_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/atrouill/data/wp_data
+      o: bind
